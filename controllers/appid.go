@@ -69,10 +69,10 @@ func (u *AppidController) GetAll() {
 // @Failure 403 :bid is empty
 // @router /:bid [get]
 func (b *AppidController) Get() {
-	bid, _ := b.GetInt(":bid")
-	var appid models.Appid
-	appid = appid.ReadOneById(int64(bid))
-	b.Data["json"] = appid
+	bid, _ := b.GetInt64(":bid")
+	var appid *models.Appid
+	appidObj := appid.ReadOneById(bid)
+	b.Data["json"] = appidObj
 	b.ServeJSON()
 }
 

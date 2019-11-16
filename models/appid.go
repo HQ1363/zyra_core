@@ -62,8 +62,7 @@ func (sl *Appid) ReadOneById(Id int64) Appid {
 	if err == nil {
 		return appid
 	}
-
-	return Appid{}
+	return appid
 }
 
 // GetAppidById 通过Id查询记录
