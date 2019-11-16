@@ -62,6 +62,7 @@ func (sl *Appid) ReadOneById(Id int64) Appid {
 	if err == nil {
 		return appid
 	}
+
 	return appid
 }
 
