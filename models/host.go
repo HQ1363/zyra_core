@@ -29,7 +29,7 @@ func GetAllHostByFilterCondition(pageNum, pageSize int64, sort string, desc bool
 
 	// test raw
 	var host Host
-	o.Raw("SELECT id, host_name, ip_address, env, type, bind_port FROM host WHERE id = ?", 1412).QueryRow(&host)
+	_ = o.Raw("SELECT id, host_name, ip_address, env, type, bind_port FROM host WHERE id = ?", 1412).QueryRow(&host)
 
 	// test raws
 	var offset int64
@@ -39,18 +39,17 @@ func GetAllHostByFilterCondition(pageNum, pageSize int64, sort string, desc bool
 		offset = (pageNum - 1) * pageSize
 	}
 	var hosts []Host
-	o.Raw("SELECT id, host_name, ip_address, env, type, bind_port FROM host limit ?, ?", pageSize, offset).QueryRows(&hosts)
+	_, _ = o.Raw("SELECT id, host_name, ip_address, env, type, bind_port FROM host limit ?, ?", pageSize, offset).QueryRows(&hosts)
 
 	var count int64
 
-	o.Raw("SELECT count(1) FROM hosts", pageSize, offset).QueryRow(&count)
+	_ = o.Raw("SELECT count(1) FROM hosts", pageSize, offset).QueryRow(&count)
 	return hosts, count
 }
 
 // GetHostById 通过Id查询记录
 func GetHostById(id int) (bObj Host, err error) {
 	o := orm.NewOrm()
-	o.Using("default")
 	err = o.QueryTable("host").Filter("Id", id).One(&bObj)
 	logs.Info(bObj)
 	if err == orm.ErrMultiRows {
@@ -72,7 +71,6 @@ func GetHostById(id int) (bObj Host, err error) {
 // AddHost 增加新纪录
 func AddHost(obj Host) int64 {
 	o := orm.NewOrm()
-	o.Using("default")
 	logs.Info("增加记录为: ", obj)
 	bid, err := o.Insert(&obj)
 	if err == nil {
@@ -136,7 +134,6 @@ func UpdateHost(bid int64, obj *Host) Host {
 // DeleteHost 软删除1条记录
 func DeleteHost(id int64) Host {
 	o := orm.NewOrm()
-	o.Using("default")
 	obj := Host{Id: id}
 
 	if o.Read(&obj) == nil {

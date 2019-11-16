@@ -23,7 +23,7 @@ type PublishRecordController struct {
 func (b *PublishRecordController) Post() {
 	logs.Info("请求参数为: ", string(b.Ctx.Input.RequestBody))
 	var record models.PublishRecord
-	json.Unmarshal(b.Ctx.Input.RequestBody, &record)
+	_ = json.Unmarshal(b.Ctx.Input.RequestBody, &record)
 	objId := models.AddPublishRecord(record)
 	b.Data["json"] = objId
 	b.ServeJSON()
@@ -83,7 +83,7 @@ func (u *PublishRecordController) Put() {
 	logs.Info("请求参数为: ", string(u.Ctx.Input.RequestBody))
 	bid, _ := u.GetInt(":bid")
 	var publish models.PublishRecord
-	json.Unmarshal(u.Ctx.Input.RequestBody, &publish)
+	_ = json.Unmarshal(u.Ctx.Input.RequestBody, &publish)
 	obj := models.UpdatePublishRecord(bid, &publish)
 	u.Data["json"] = obj
 	u.ServeJSON()

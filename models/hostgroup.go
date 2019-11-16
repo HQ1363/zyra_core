@@ -28,7 +28,7 @@ func GetAllHostgroupByFilterCondition(pageNum, pageSize int64, sort string, desc
 
 	// test raw
 	var hostgroup Hostgroup
-	o.Raw("SELECT id, appid FROM hostgroup WHERE id = ?", 1412).QueryRow(&hostgroup)
+	_ = o.Raw("SELECT id, appid FROM hostgroup WHERE id = ?", 1412).QueryRow(&hostgroup)
 
 	// test raws
 	var offset int64
@@ -38,20 +38,19 @@ func GetAllHostgroupByFilterCondition(pageNum, pageSize int64, sort string, desc
 		offset = (pageNum - 1) * pageSize
 	}
 	var hostgroups []Hostgroup
-	o.Raw("SELECT id, host_id, hostgroup_id FROM hostgroup limit ?, ?", pageSize, offset).QueryRows(&hostgroups)
+	_, _ = o.Raw("SELECT id, host_id, hostgroup_id FROM hostgroup limit ?, ?", pageSize, offset).QueryRows(&hostgroups)
 
 	fmt.Print(hostgroups)
 
 	var count int64
 
-	o.Raw("SELECT count(1) FROM hostgroup", pageSize, offset).QueryRow(&count)
+	_ = o.Raw("SELECT count(1) FROM hostgroup", pageSize, offset).QueryRow(&count)
 	return hostgroups, count
 }
 
 // GetHostgroupById 通过Id查询记录
 func GetHostgroupById(id int) (bObj Hostgroup, err error) {
 	o := orm.NewOrm()
-	o.Using("default")
 	err = o.QueryTable("hostgroup").Filter("Id", id).One(&bObj)
 	logs.Info(bObj)
 	if err == orm.ErrMultiRows {
@@ -73,7 +72,6 @@ func GetHostgroupById(id int) (bObj Hostgroup, err error) {
 // AddHostgroup 增加新纪录
 func AddHostgroup(obj Hostgroup) int64 {
 	o := orm.NewOrm()
-	o.Using("default")
 	logs.Info("增加记录为: ", obj)
 	bid, err := o.Insert(&obj)
 	if err == nil {
@@ -129,7 +127,6 @@ func UpdateHostgroup(bid int64, obj *Hostgroup) Hostgroup {
 // DeleteHostgroup 软删除1条记录
 func DeleteHostgroup(id int64) Hostgroup {
 	o := orm.NewOrm()
-	o.Using("default")
 	obj := Hostgroup{Id: id}
 
 	if o.Read(&obj) == nil {

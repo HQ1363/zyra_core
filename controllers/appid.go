@@ -70,8 +70,8 @@ func (u *AppidController) GetAll() {
 // @router /:bid [get]
 func (b *AppidController) Get() {
 	bid, _ := b.GetInt(":bid")
-	var appid *models.Appid
-	appid = models.Appid.ReadOneById(bid)
+	var appid models.Appid
+	appid = appid.ReadOneById(int64(bid))
 	b.Data["json"] = appid
 	b.ServeJSON()
 }

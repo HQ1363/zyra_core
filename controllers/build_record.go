@@ -22,7 +22,7 @@ type BuildRecordController struct {
 func (b *BuildRecordController) Post() {
 	logs.Info("请求参数为: ", string(b.Ctx.Input.RequestBody))
 	var record models.BuildRecord
-	json.Unmarshal(b.Ctx.Input.RequestBody, &record)
+	_ = json.Unmarshal(b.Ctx.Input.RequestBody, &record)
 	objId := models.AddBuildRecord(record)
 	b.Data["json"] = objId
 	b.ServeJSON()
@@ -86,7 +86,7 @@ func (u *BuildRecordController) Put() {
 	logs.Info("请求参数为: ", string(u.Ctx.Input.RequestBody))
 	bid, _ := u.GetInt(":bid")
 	var publish models.BuildRecord
-	json.Unmarshal(u.Ctx.Input.RequestBody, &publish)
+	_ = json.Unmarshal(u.Ctx.Input.RequestBody, &publish)
 	obj := models.UpdateBuildRecord(bid, &publish)
 	u.Data["json"] = obj
 	u.ServeJSON()

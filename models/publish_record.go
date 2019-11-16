@@ -35,7 +35,7 @@ func GetAllPublishRecordByFilterCondition(pageNum, pageSize int64, sort string) 
 	} else {
 		offset = (pageNum - 1) * pageSize
 	}
-	qs.Limit(pageSize, offset).OrderBy(sort).Values(&records, "Id", "Appid", "OpsType", "OpsStatus", "Env", "UpsList", "PackageURL", "CreateTime", "UpdateTime")
+	_, _ = qs.Limit(pageSize, offset).OrderBy(sort).Values(&records, "Id", "Appid", "OpsType", "OpsStatus", "Env", "UpsList", "PackageURL", "CreateTime", "UpdateTime")
 	count, _ = qs.Count()
 	return records, count
 }
@@ -43,7 +43,6 @@ func GetAllPublishRecordByFilterCondition(pageNum, pageSize int64, sort string) 
 // GetById 通过Id查询记录
 func GetPublishRecordById(id int) (bObj PublishRecord, err error) {
 	o := orm.NewOrm()
-	o.Using("default")
 	err = o.QueryTable("PublishRecord").Filter("Id", id).One(&bObj)
 	if err == orm.ErrMultiRows {
 		// 多条的时候报错
@@ -64,7 +63,6 @@ func GetPublishRecordById(id int) (bObj PublishRecord, err error) {
 // Add 增加新纪录
 func AddPublishRecord(obj PublishRecord) int64 {
 	o := orm.NewOrm()
-	o.Using("default")
 	logs.Info("增加记录为: ", obj)
 	bid, err := o.Insert(&obj)
 	if err == nil {
@@ -136,7 +134,6 @@ func UpdatePublishRecord(bid int, obj *PublishRecord) PublishRecord {
 // Delete 软删除1条记录
 func DeletePublishRecord(id int) PublishRecord {
 	o := orm.NewOrm()
-	o.Using("default")
 	obj := PublishRecord{Id: id}
 
 	if o.Read(&obj) == nil {

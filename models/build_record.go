@@ -36,7 +36,7 @@ func GetAllBuildRecordByFilterCondition(pageNum, pageSize int64, sort string, de
 
 	// test raw
 	var buildRecord BuildRecord
-	o.Raw("SELECT id, appid FROM build_record WHERE id = ?", 1412).QueryRow(&buildRecord)
+	_ = o.Raw("SELECT id, appid FROM build_record WHERE id = ?", 1412).QueryRow(&buildRecord)
 	logs.Info(buildRecord.Id, buildRecord.Appid, buildRecord.EventName)
 
 	// test raws
@@ -47,19 +47,18 @@ func GetAllBuildRecordByFilterCondition(pageNum, pageSize int64, sort string, de
 		offset = (pageNum - 1) * pageSize
 	}
 	var buildRecords []BuildRecord
-	o.Raw("SELECT id, appid FROM build_record limit ?, ?", pageSize, offset).QueryRows(&buildRecords)
+	_, _ = o.Raw("SELECT id, appid FROM build_record limit ?, ?", pageSize, offset).QueryRows(&buildRecords)
 	fmt.Print(buildRecords)
 
 	var count int64
 
-	o.Raw("SELECT count(1) FROM build_record", pageSize, offset).QueryRow(&count)
+	_ = o.Raw("SELECT count(1) FROM build_record", pageSize, offset).QueryRow(&count)
 	return buildRecords, count
 }
 
 // GetBuildRecordById 通过Id查询记录
 func GetBuildRecordById(id int) (bObj BuildRecord, err error) {
 	o := orm.NewOrm()
-	o.Using("default")
 	err = o.QueryTable("BuildRecord").Filter("Id", id).One(&bObj)
 	logs.Info(bObj)
 	if err == orm.ErrMultiRows {
@@ -81,7 +80,6 @@ func GetBuildRecordById(id int) (bObj BuildRecord, err error) {
 // AddBuildRecord 增加新纪录
 func AddBuildRecord(obj BuildRecord) int64 {
 	o := orm.NewOrm()
-	o.Using("default")
 	logs.Info("增加记录为: ", obj)
 	bid, err := o.Insert(&obj)
 	if err == nil {
@@ -173,7 +171,6 @@ func UpdateBuildRecord(bid int, obj *BuildRecord) BuildRecord {
 // DeleteBuildRecord 软删除1条记录
 func DeleteBuildRecord(id int) BuildRecord {
 	o := orm.NewOrm()
-	o.Using("default")
 	obj := BuildRecord{Id: id}
 
 	if o.Read(&obj) == nil {

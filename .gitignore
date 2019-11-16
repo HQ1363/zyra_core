@@ -1,0 +1,13 @@
+zyra_core
+zyra_core.exe
+zyra_core.exe*
+lastupdate.tmp
+
+logs
+logs/*
+
+swagger
+swagger.zip
+
+.vscode
+.vscode/*

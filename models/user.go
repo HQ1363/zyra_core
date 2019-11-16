@@ -1,86 +1,106 @@
 package models
 
 import (
-	"errors"
-	"strconv"
-	"time"
+	"fmt"
+	"github.com/astaxie/beego/orm"
 )
-
-var (
-	UserList map[string]*User
-)
-
-func init() {
-	UserList = make(map[string]*User)
-	u := User{"user_11111", "astaxie", "11111", Profile{"male", 20, "Singapore", "astaxie@gmail.com"}}
-	UserList["user_11111"] = &u
-}
 
 type User struct {
-	Id       string
-	Username string
-	Password string
-	Profile  Profile
+	BaseModel
+	Username string `orm:"null;size(64);column(username);type(varchar)" description:"用户名"`
+	SSOId string `orm:"index;unique;size(64);column(sso_id);type(varchar)" description:"员工工号"`
 }
 
-type Profile struct {
-	Gender  string
-	Age     int
-	Address string
-	Email   string
+// 表名
+func (u *User) TableName() string {
+	return "user"
 }
 
-func AddUser(u User) string {
-	u.Id = "user_" + strconv.FormatInt(time.Now().UnixNano(), 10)
-	UserList[u.Id] = &u
-	return u.Id
+func init() {
+	// 注册模型
+	orm.RegisterModel(new(User))
 }
 
-func GetUser(uid string) (u *User, err error) {
-	if u, ok := UserList[uid]; ok {
-		return u, nil
+// CRUD
+func (u *User) Save() (int64, error) {
+	return orm.NewOrm().Insert(u)
+}
+
+func InsertMultiUser (users []User) (int64, error) {
+	o := orm.NewOrm()
+	if successNum, err := o.InsertMulti(len(users), users); err == nil {
+		if successNum > 0 {
+			fmt.Printf("成功插入 %d 个用户.\n", successNum)
+		} else {
+			fmt.Println("批量插入数据失败")
+		}
+		return successNum, err
 	}
-	return nil, errors.New("User not exists")
+	return 0, nil
 }
 
-func GetAllUsers() map[string]*User {
-	return UserList
-}
-
-func UpdateUser(uid string, uu *User) (a *User, err error) {
-	if u, ok := UserList[uid]; ok {
-		if uu.Username != "" {
-			u.Username = uu.Username
-		}
-		if uu.Password != "" {
-			u.Password = uu.Password
-		}
-		if uu.Profile.Age != 0 {
-			u.Profile.Age = uu.Profile.Age
-		}
-		if uu.Profile.Address != "" {
-			u.Profile.Address = uu.Profile.Address
-		}
-		if uu.Profile.Gender != "" {
-			u.Profile.Gender = uu.Profile.Gender
-		}
-		if uu.Profile.Email != "" {
-			u.Profile.Email = uu.Profile.Email
-		}
-		return u, nil
+func GetUserById(id int) (*User, error) {
+	r := new(User)
+	err := orm.NewOrm().QueryTable(r.TableName()).Filter("id", id).One(r)
+	if err != nil {
+		return nil, err
 	}
-	return nil, errors.New("User Not Exist")
+	return r, nil
 }
 
-func Login(username, password string) bool {
-	for _, u := range UserList {
-		if u.Username == username && u.Password == password {
-			return true
+func DeleteUserById(id int, ssoId string) {
+	o := orm.NewOrm()
+	userPtr := new(User)
+	userPtr.Id = int64(id)
+	if ssoId != "" {
+		userPtr = &User { SSOId: ssoId }
+	}
+	if num, err := o.Delete(userPtr); err == nil {
+		fmt.Printf("删除记录数: %d", num)
+	}
+}
+
+func (u *User) Update(updateAll bool, fields ... string) {
+	o := orm.NewOrm()
+	_ = o.Begin()
+	var readUser User
+	readUser.Id = u.Id
+	if o.Read(&readUser) == nil {
+		if updateAll {
+			if num, err := o.Update(u); err == nil {
+				_ = o.Commit()
+				fmt.Println("更新记录数: ", num)
+			} else {
+				_ = o.Rollback()
+			}
+		} else {
+			if num, err := o.Update(u, fields ...); err == nil {
+				_ = o.Commit()
+				fmt.Println("更新记录数: ", num)
+			} else {
+				_ = o.Rollback()
+			}
 		}
 	}
-	return false
 }
 
-func DeleteUser(uid string) {
-	delete(UserList, uid)
+func GetOrCreateUser(user *User) {
+	o := orm.NewOrm()
+	if created, id, err := o.ReadOrCreate(user, "SSOId"); err == nil {
+		if created {
+			fmt.Println("New Insert an user object. Id:", id)
+		} else {
+			fmt.Println("Get an user object. Id:", id)
+		}
+	}
+}
+
+func (u *User) MgetUserByIds(ids string) ([]*User, error) {
+	list := make([]*User, 0)
+	sql := "SELECT * FROM " + u.TableName() + " WHERE id in(%s)"
+	setter := u.ExecRawSql(sql, ids)
+	if _, err := setter.QueryRows(&list); err != nil {
+		logger.Println("批量查询DB失败：", err)
+	}
+	return list, nil
 }

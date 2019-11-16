@@ -26,7 +26,6 @@ type Appid struct {
 // GetAllAppidByFilterCondition 根据条件分页查询
 func GetAllAppidByFilterCondition(pageNum, pageSize int64, sort string, desc bool) ([]Appid, int64) {
 	o := orm.NewOrm()
-	o.Using("default")
 
 	// test raws
 	var offset int64
@@ -39,18 +38,16 @@ func GetAllAppidByFilterCondition(pageNum, pageSize int64, sort string, desc boo
 	logs.Info("SELECT id, appid, details, repo_url, bind_domain, bind_port, create_time, update_time, valid_status, is_delete FROM appid limit %d, %d \n", offset, pageSize)
 
 	var appids []Appid
-	o.Raw("SELECT id, appid, details, repo_url, bind_domain, bind_port, create_time, update_time, valid_status, is_delete FROM appid limit ?, ?", offset, pageSize).QueryRows(&appids)
+	_, _ = o.Raw("SELECT id, appid, details, repo_url, bind_domain, bind_port, create_time, update_time, valid_status, is_delete FROM appid limit ?, ?", offset, pageSize).QueryRows(&appids)
 
 	var count int64
 
-	o.Raw("SELECT count(1) FROM appid").QueryRow(&count)
+	_ = o.Raw("SELECT count(1) FROM appid").QueryRow(&count)
 	return appids, count
 }
 
 func (sl *Appid) ReadOneById(Id int64) Appid {
 	o := orm.NewOrm()
-	o.Using("default")
-
 	var appid Appid
 	err := o.QueryTable("Appid").Filter("Id", Id).One(&appid)
 	if err == orm.ErrMultiRows {
@@ -63,16 +60,15 @@ func (sl *Appid) ReadOneById(Id int64) Appid {
 	}
 
 	if err == nil {
-		return &appid
+		return appid
 	}
 
-	return &Appid{}
+	return Appid{}
 }
 
 // GetAppidById 通过Id查询记录
 func GetAppidById(id int) (bObj Appid, err error) {
 	o := orm.NewOrm()
-	o.Using("default")
 	err = o.QueryTable("Appid").Filter("Id", id).One(&bObj)
 	logs.Info(bObj)
 	if err == orm.ErrMultiRows {
@@ -94,7 +90,6 @@ func GetAppidById(id int) (bObj Appid, err error) {
 // AddAppid 增加新纪录
 func AddAppid(obj Appid) int64 {
 	o := orm.NewOrm()
-	o.Using("default")
 	logs.Info("增加记录为: ", obj)
 	bid, err := o.Insert(&obj)
 	if err == nil {
@@ -154,7 +149,6 @@ func UpdateAppid(bid int64, obj *Appid) Appid {
 // DeleteAppid 软删除1条记录
 func DeleteAppid(id int64) Appid {
 	o := orm.NewOrm()
-	o.Using("default")
 	obj := Appid{Id: id}
 
 	if o.Read(&obj) == nil {
